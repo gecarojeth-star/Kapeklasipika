@@ -1,13 +1,29 @@
 # Central settings so every notebook uses the same values
 seed: 42
-img_size: 224
+img_size: 224          # MobileNetV2's standard input size (dataset images are 256x256)
 batch_size: 32
-classes: [defect, longberry, peaberry, premium]
-split:
-  train: 0.70
-  val: 0.15
-  test: 0.15
+classes: [defect, longberry, peaberry, premium]   # alphabetical = folder order
+
+# The dataset ships pre-split (60/20/20): 1,200 / 400 / 400 images per class.
+# We keep the authors' split so results compare fairly with the original paper.
+
+training:
+  baseline_epochs: 30
+  head_epochs: 15         # stage 1: MobileNetV2 frozen, train only the new classifier head
+  finetune_epochs: 15     # stage 2: unfreeze the top of MobileNetV2 and train gently
+  finetune_layers: 40     # how many of MobileNetV2's last layers to unfreeze
+  head_lr: 0.001
+  finetune_lr: 0.00001    # 100x smaller so we don't destroy the pretrained features
+  patience: 5             # early stopping: stop if val loss doesn't improve for 5 epochs
+
 paths:
   raw: 02_data/raw/usk_coffee
-  processed: 02_data/processed
+  train: 02_data/raw/usk_coffee/train
+  val: 02_data/raw/usk_coffee/val
+  test: 02_data/raw/usk_coffee/test
+  real_world_test: 02_data/external        # your phone photos, one folder per class
+  interim: 02_data/interim
+  exclusions: 02_data/interim/excluded_files.csv   # written by notebook 02
   models: 05_modeling/models
+  metrics: 06_evaluation/metrics
+  figures: reports/figures

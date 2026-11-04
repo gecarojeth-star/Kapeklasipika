@@ -1,0 +1,54 @@
+name: kapeklasipika_app
+description: KapeKlasipika - offline green Arabica coffee bean classifier (Peaberry, Longberry, Premium, Defect).
+publish_to: "none"
+version: 2.0.0+3
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  image_picker: ^1.1.2      # take a photo with the camera or pick one from the gallery
+  image: ^4.2.0             # decode, crop and resize the photo in Dart
+  tflite_flutter: ^0.12.1   # runs the .tflite model on the phone, offline (needs Android 8.0+)
+  camera: ^0.12.1           # live camera preview + frame stream for the live scanner
+  shared_preferences: ^2.5.3  # remembers your weight calibration
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.4   # generates the app icon:   dart run flutter_launcher_icons
+  flutter_native_splash: ^2.4.8     # generates the splash:     dart run flutter_native_splash:create
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/kapeklasipika.tflite   # produced by notebook 05
+    - assets/labels.txt
+    - assets/icon/icon.png           # shown in the app bar
+
+# ---------------------------------------------------------------------------
+# App icon (option A: bean inside scan brackets)
+# ---------------------------------------------------------------------------
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/icon/icon.png"
+  min_sdk_android: 26
+  adaptive_icon_background: "#2F4A24"
+  adaptive_icon_foreground: "assets/icon/foreground.png"
+  adaptive_icon_foreground_inset: 0   # the artwork already sits inside the safe zone
+
+# ---------------------------------------------------------------------------
+# Splash screen (no white flash on launch)
+# ---------------------------------------------------------------------------
+flutter_native_splash:
+  color: "#2F4A24"
+  image: "assets/icon/splash.png"
+  android_12:
+    color: "#2F4A24"
+    image: "assets/icon/foreground.png"
+  ios: false
+  web: false

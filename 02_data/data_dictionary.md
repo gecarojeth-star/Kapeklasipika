@@ -1,10 +1,21 @@
 # Data Dictionary — USK-Coffee
 
-Image dataset: each **file** is one record; the **folder name** is the label.
+Image dataset: each **file** is one record; the **folder name** is the label, and the
+parent folder is the split.
+
+| Split | Defect | Longberry | Peaberry | Premium | Total |
+|---|---|---|---|---|---|
+| train | 1,200 | 1,200 | 1,200 | 1,200 | 4,800 (60%) |
+| val | 400 | 400 | 400 | 400 | 1,600 (20%) |
+| test | 400 | 400 | 400 | 400 | 1,600 (20%) |
+| **Total** | 2,000 | 2,000 | 2,000 | 2,000 | 8,000 |
+
+_Counts as reported by the user after download; Step 3 will verify them in code._
 
 | Field | Meaning | Type | Example | Possible issues |
 |---|---|---|---|---|
-| file_path | Location of the image file | text | `raw/usk_coffee/peaberry/0001.jpg` | Check exact file names/format after download |
+| file_path | Location of the image file | text | `raw/usk_coffee/train/peaberry/<file>` | Check exact file names/format after download |
+| split | Which set the image belongs to (from parent folder) | categorical (train / val / test) | `train` | Check for near-duplicates across splits |
 | label | Bean category (from folder name) | categorical (4 values) | `peaberry` | Labels assumed correct; spot-check a sample |
 | width, height | Image size in pixels | integer | 256, 256 | Dataset says 256×256; verify all images match |
 | channels | Color channels | integer | 3 (RGB) | Check for grayscale or RGBA files |

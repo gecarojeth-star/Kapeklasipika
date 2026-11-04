@@ -5,5 +5,7 @@ matplotlib
 seaborn
 scikit-learn
 pillow
+pyyaml           # reads config/config.yaml
 imagehash        # finds near-duplicate images (data leakage check)
 jupyter
+tensorflow-datasets  # non-bean test images for notebook 06 (preinstalled on Colab)
