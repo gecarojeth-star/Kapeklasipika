@@ -1,11 +1,14 @@
-tensorflow>=2.15
+# Python packages used by the notebooks and src/.
+# TensorFlow is pinned to the version the reported results were produced with (Colab, Nov 2026).
+# Colab already has most of these; there you only need: pip install imagehash
+tensorflow==2.21.0
+tensorflow-datasets      # notebook 06 only (flowers and CIFAR-10 as non-bean test images)
 numpy
 pandas
+scikit-learn
 matplotlib
 seaborn
-scikit-learn
 pillow
-pyyaml           # reads config/config.yaml
-imagehash        # finds near-duplicate images (data leakage check)
-jupyter
-tensorflow-datasets  # non-bean test images for notebook 06 (preinstalled on Colab)
+imagehash                # perceptual hashes for the near-duplicate check (notebook 02)
+pyyaml                   # reads config/config.yaml
+pytest                   # runs tests/

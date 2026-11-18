@@ -1,7 +1,7 @@
 name: kapeklasipika_app
 description: KapeKlasipika - offline green Arabica coffee bean classifier (Peaberry, Longberry, Premium, Defect).
 publish_to: "none"
-version: 2.0.0+3
+version: 2.1.0+4
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -12,8 +12,6 @@ dependencies:
   image_picker: ^1.1.2      # take a photo with the camera or pick one from the gallery
   image: ^4.2.0             # decode, crop and resize the photo in Dart
   tflite_flutter: ^0.12.1   # runs the .tflite model on the phone, offline (needs Android 8.0+)
-  camera: ^0.12.1           # live camera preview + frame stream for the live scanner
-  shared_preferences: ^2.5.3  # remembers your weight calibration
 
 dev_dependencies:
   flutter_test:

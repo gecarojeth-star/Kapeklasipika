@@ -1,27 +1,42 @@
-# Project Charter — KapeKlasipika
-_Drafted 2026-10-21. Update as decisions change._
+# Project charter: KapeKlasipika
 
-**Title:** KapeKlasipika: An Offline Android Application for Classifying Green Arabica Coffee Beans into Peaberry, Longberry, Premium, and Defect Using MobileNetV2 Transfer Learning
+*Draft, 2026-11-04. Team names, school and adviser are left out on purpose and will be added
+near the end of the project.*
 
-**Student:** Jeth Sander S. Gecaro (solo project) — CS333
+## Purpose
+Give coffee sorters a consistent, phone-based second opinion on the category of a single green
+Arabica coffee bean, without needing internet or special hardware.
 
-**Objective:** Build a mobile-friendly app that takes a photo of a green Arabica coffee bean
-and predicts its category (Peaberry, Longberry, Premium, Defect), to support consistent,
-image-based coffee sorting.
+## Deliverables
+1. A trained image classifier (MobileNetV2 transfer learning) and its evaluation.
+2. An offline Android app (Flutter): upload a photo or take one, get the class, the confidence
+   and all four probabilities, and a warning when the photo does not look like a coffee bean.
+3. An IEEE-format paper and the supporting documents in this folder.
 
-**Data mining task:** Classification (supervised, 4 classes)
+## Scope
+| In scope | Out of scope (decided) |
+|---|---|
+| Four classes: Defect, Longberry, Peaberry, Premium | YOLO or webcam object detection |
+| One bean per photo, uploaded or taken in the app | Live multi-bean scanning (removed) |
+| Offline inference on Android 8.0+ | Saving a history to storage (recent scans stay in memory only, with a Clear button) |
+| "Not a coffee bean" warning | Roasted beans; naming the specific defect type |
+| Test on phone photos of real local beans | Replacing trained human sorters |
 
-**Method:** CNN using transfer learning with MobileNetV2 (pretrained on ImageNet)
+## Data
+- **USK-Coffee** (public): single green Arabica beans photographed in Banda Aceh, Indonesia,
+  pre-split into train / validation / test.
+- **Own phone photos** of real green beans, used for testing only (not collected yet).
 
-**Tools:** Python, TensorFlow/Keras, pandas, NumPy, Flutter (mobile app), TensorFlow Lite (on-device model)
+## Method
+CRISP-DM, all experiments in Google Colab (T4 GPU) with TensorFlow/Keras; settings in
+`config/config.yaml`; every decision recorded in `00_admin/decision_log.md`.
 
-**Dataset:** USK-Coffee — 8,000 images, 2,000 per class, 256×256 px, pre-split into train/val/test (1,200 / 400 / 400 per class). Plus ~50–100 phone photos of locally sourced green beans for a real-world test.
-
-**Training environment:** Google Colab (free GPU); laptop (Intel Iris Xe, CPU-only training) as backup
-
-**Process:** CRISP-DM (business understanding → data understanding → preparation → modeling → evaluation → deployment)
-
-**Deliverables (CS333):** project proposal (1–2 pages, ≥4 related papers, timeline); dataset; IEEE-format paper (6–10 pages, ≥6 references); trained model; source code; 20–30 min oral presentation
-
-**Deadline:** _TBD_
-
+## Milestones
+| Milestone | Status |
+|---|---|
+| Models trained and evaluated on the dataset | Done |
+| Phone model exported, app runs it | Done |
+| Project documents organised (this structure) | In progress |
+| Real phone photos collected and labelled | **Not started** |
+| Real-world evaluation | Waiting for photos |
+| Paper final draft | In progress; deadline to be added |

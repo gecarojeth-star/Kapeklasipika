@@ -1,9 +1,4 @@
-# KapeKlasipika — Final Report
+# Final report
 
-1. Introduction and problem
-2. Data
-3. Method (CRISP-DM)
-4. Results
-5. Discussion and limitations
-6. Recommendations and next steps
-7. References
+*Assembled in Stage 6 from the documents in this project:* summary, CRISP-DM walkthrough,
+results, limitations and next steps. The IEEE paper is written separately and uses the same numbers.

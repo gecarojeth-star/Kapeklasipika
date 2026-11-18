@@ -1,22 +1,37 @@
-# Data and models are too large for git
+# --- Data (large, or the dataset authors' property; download it instead of committing) ---
 02_data/raw/
+02_data/external/**/*.jpg
+02_data/external/**/*.jpeg
+02_data/external/**/*.png
+02_data/external_non_beans/
 02_data/interim/
 02_data/processed/
+
+# --- Trained models (large; keep them in Drive) ---
 05_modeling/models/*.keras
 05_modeling/models/*.h5
-*.zip
 
-# Python / Jupyter
+# --- Python / Jupyter ---
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+.pytest_cache/
 .venv/
 venv/
 
-# Flutter build outputs
+# --- Flutter / Android build output and secrets ---
 07_deployment/mobile_app/build/
 07_deployment/mobile_app/.dart_tool/
+07_deployment/mobile_app/.flutter-plugins*
+07_deployment/mobile_app/android/.gradle/
+07_deployment/mobile_app/android/local.properties
+*.jks
+*.keystore
+key.properties
 
-# OS
+# --- OS / editor clutter ---
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
+.env

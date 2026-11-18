@@ -51,8 +51,18 @@ Float32List preprocessImage(Uint8List bytes) {
   if (decoded == null) {
     throw const FormatException('Could not read this image.');
   }
+  // 0. Safety net for very large photos (e.g. a 50 MP gallery image): shrink first, so the
+  //    rotation and crop below never copy a huge image in memory. The picker normally
+  //    delivers at most 1024 px already.
+  const maxSide = 1600;
+  final small = max(decoded.width, decoded.height) > maxSide
+      ? (decoded.width >= decoded.height
+          ? img.copyResize(decoded, width: maxSide, interpolation: img.Interpolation.linear)
+          : img.copyResize(decoded, height: maxSide, interpolation: img.Interpolation.linear))
+      : decoded;
+
   // 1. Respect the phone's rotation tag so the photo is upright.
-  final upright = img.bakeOrientation(decoded);
+  final upright = img.bakeOrientation(small);
 
   // 2. Center-crop to a square (same as training), so the bean isn't stretched.
   final side = min(upright.width, upright.height);
@@ -137,9 +147,6 @@ class BeanClassifier {
     return _run(flat, watch);
   }
 
-  /// Classify an already prepared 224x224 RGB image (flat, 0-255), e.g. a live-camera crop.
-  Future<Prediction> classifyFlat(Float32List flat) => _run(flat, Stopwatch()..start());
-
   Future<Prediction> _run(Float32List flat, Stopwatch watch) async {
     // Reshape the flat list into [1][224][224][3] for the model.
     final input = [
@@ -159,7 +166,7 @@ class BeanClassifier {
       await _isolate.run(input, probsOut);
     } else {
       final anomalyOut = [List<double>.filled(1, 0.0)];
-      await _isolate.runForMultipleInputs([input], {_probsIndex: probsOut, _anomalyIndex!: anomalyOut});
+      await _isolate.runForMultipleInputs([input], {_probsIndex: probsOut, _anomalyIndex: anomalyOut});
       anomaly = anomalyOut[0][0];
     }
     watch.stop();
