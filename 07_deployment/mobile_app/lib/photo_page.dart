@@ -7,12 +7,15 @@
 //   app bar (logo, name, tips button)
 //   photo card        -> empty state / photo / "Analyzing..." overlay
 //   result card       -> class, confidence, animated probability bars
-//   recent scans      -> tap a thumbnail to see that result again
+//   recent scans      -> tap a thumbnail to see that result again; "Clear" empties the list.
+//                        Kept in memory only: nothing is saved, and closing the app clears it.
 //   bottom bar        -> Take photo | Upload (always reachable with the thumb)
 
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:image_picker/image_picker.dart';
 
 import 'classifier.dart';
@@ -47,15 +50,77 @@ class _PhotoPageState extends State<PhotoPage> {
   bool _busy = false;
   int _nextId = 0;
 
+  bool _picking = false; // the camera or gallery is open
+  Uint8List? _recovered; // photo recovered after Android closed the app (see below)
+
+  @override
+  void initState() {
+    super.initState();
+    _recoverLostPhoto();
+  }
+
+  @override
+  void didUpdateWidget(PhotoPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The model finished loading after a photo was recovered: classify it now.
+    if (oldWidget.classifier == null && widget.classifier != null && _recovered != null) {
+      final bytes = _recovered!;
+      _recovered = null;
+      _classify(bytes);
+    }
+  }
+
+  /// On low-memory phones Android may close this app while the camera app is open.
+  /// When the user comes back the app restarts, and the photo would be lost. image_picker
+  /// keeps it for us; fetch it here so the scan continues instead of silently vanishing.
+  Future<void> _recoverLostPhoto() async {
+    if (defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      final lost = await _picker.retrieveLostData();
+      if (lost.isEmpty || lost.file == null) return;
+      final bytes = await lost.file!.readAsBytes();
+      if (!mounted) return;
+      if (_classifier != null) {
+        _classify(bytes);
+      } else {
+        _recovered = bytes; // classified in didUpdateWidget once the model is ready
+      }
+    } catch (_) {
+      // Nothing to recover, or it could not be read: just start normally.
+    }
+  }
+
   Future<void> _pickAndClassify(ImageSource source) async {
+    if (_classifier == null || _busy || _picking) return;
+    setState(() {
+      _picking = true; // disables both buttons, so a double tap can't open the camera twice
+      _error = null;
+    });
+
+    Uint8List? bytes;
+    try {
+      // Ask the picker for a small image (max 1024 px). A full-size camera photo can be
+      // 12-50 megapixels, which is slow to decode and can run the phone out of memory.
+      final picked = await _picker.pickImage(
+          source: source, maxWidth: 1024, maxHeight: 1024, imageQuality: 95);
+      if (picked != null) bytes = await picked.readAsBytes();
+    } on PlatformException catch (e) {
+      _showError(e.code.contains('access_denied')
+          ? 'KapeKlasipika needs permission to use the camera or photos. '
+              'Allow it in your phone settings, then try again.'
+          : 'Could not open the ${source == ImageSource.camera ? 'camera' : 'gallery'}: '
+              '${e.message ?? e.code}');
+    } catch (e) {
+      _showError('Could not read the photo: $e');
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+    if (bytes != null && mounted) await _classify(bytes);
+  }
+
+  Future<void> _classify(Uint8List bytes) async {
     final classifier = _classifier;
     if (classifier == null || _busy) return;
-
-    // maxWidth keeps big camera photos fast to process; 1024 px is plenty for a 224 px model.
-    final picked = await _picker.pickImage(source: source, maxWidth: 1024, imageQuality: 95);
-    if (picked == null) return;
-    final bytes = await picked.readAsBytes();
-
     setState(() {
       _pendingPhoto = bytes;
       _error = null;
@@ -63,6 +128,7 @@ class _PhotoPageState extends State<PhotoPage> {
     });
     try {
       final prediction = await classifier.classifyBytes(bytes);
+      if (!mounted) return;
       final scan = Scan(_nextId++, bytes, prediction);
       setState(() {
         _current = scan;
@@ -70,11 +136,39 @@ class _PhotoPageState extends State<PhotoPage> {
         if (_history.length > _maxHistory) _history.removeLast();
       });
     } catch (e) {
-      setState(() => _error = 'Could not classify this photo: $e');
+      _showError('Could not classify this photo: $e');
     } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _pendingPhoto = null;
+        });
+      }
+    }
+  }
+
+  void _showError(String message) {
+    if (mounted) setState(() => _error = message);
+  }
+
+  /// "Clear" next to Recent scans: asks first, then removes every scan from the screen.
+  Future<void> _confirmClear() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear recent scans?'),
+        content: const Text('This removes all recent scans and the current result from the screen.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Clear')),
+        ],
+      ),
+    );
+    if (ok == true && mounted) {
       setState(() {
-        _busy = false;
-        _pendingPhoto = null;
+        _history.clear();
+        _current = null;
+        _error = null;
       });
     }
   }
@@ -89,7 +183,7 @@ class _PhotoPageState extends State<PhotoPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ready = _classifier != null && !_busy;
+    final ready = _classifier != null && !_busy && !_picking;
     final shownPhoto = _pendingPhoto ?? _current?.bytes;
 
     return Scaffold(
@@ -134,8 +228,21 @@ class _PhotoPageState extends State<PhotoPage> {
             ),
             if (_history.length > 1) ...[
               const SizedBox(height: 24),
-              Text('Recent scans', style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: Text('Recent scans', style: Theme.of(context).textTheme.titleSmall)),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    onPressed: _busy ? null : _confirmClear,
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('Clear'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
               SizedBox(
                 height: 76,
                 child: ListView.separated(

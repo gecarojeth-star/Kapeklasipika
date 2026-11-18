@@ -1,30 +1,12 @@
-# Data Dictionary — USK-Coffee
+# Data dictionary
 
-Image dataset: each **file** is one record; the **folder name** is the label, and the
-parent folder is the split.
+*To be written in Stage 3 (data understanding).* For each data file and table it will list:
+column name, meaning, type, example values and possible issues. Planned entries:
 
-| Split | Defect | Longberry | Peaberry | Premium | Total |
-|---|---|---|---|---|---|
-| train | 1,200 | 1,200 | 1,200 | 1,200 | 4,800 (60%) |
-| val | 400 | 400 | 400 | 400 | 1,600 (20%) |
-| test | 400 | 400 | 400 | 400 | 1,600 (20%) |
-| **Total** | 2,000 | 2,000 | 2,000 | 2,000 | 8,000 |
-
-_Counts as reported by the user after download; Step 3 will verify them in code._
-
-| Field | Meaning | Type | Example | Possible issues |
-|---|---|---|---|---|
-| file_path | Location of the image file | text | `raw/usk_coffee/train/peaberry/<file>` | Check exact file names/format after download |
-| split | Which set the image belongs to (from parent folder) | categorical (train / val / test) | `train` | Check for near-duplicates across splits |
-| label | Bean category (from folder name) | categorical (4 values) | `peaberry` | Labels assumed correct; spot-check a sample |
-| width, height | Image size in pixels | integer | 256, 256 | Dataset says 256×256; verify all images match |
-| channels | Color channels | integer | 3 (RGB) | Check for grayscale or RGBA files |
-| file_size_kb | File size | number | — | Very small files may be corrupt |
-
-**Class meanings (to confirm against the dataset README / paper):**
-- **Peaberry** — a single rounded bean that forms when only one seed develops in the coffee cherry.
-- **Longberry** — elongated bean shape.
-- **Premium** — normal, well-formed, defect-free bean.
-- **Defect** — beans with visible defects (broken, black, insect-damaged, etc.).
-
-_To be completed in Step 3 after profiling the actual files._
+- `02_data/raw/usk_coffee/` folder layout (split / class / image)
+- `02_data/interim/inventory.csv` (one row per image, made by notebook 01)
+- `02_data/interim/color_stats.csv`
+- `02_data/interim/exact_duplicates.csv`, `near_duplicates.csv`, `near_duplicates_checked.csv`
+- `02_data/interim/excluded_files.csv`
+- `02_data/external/labels.csv` (real-world photos)
+- `06_evaluation/metrics/*` (history logs, reports, comparison tables)

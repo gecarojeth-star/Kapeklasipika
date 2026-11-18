@@ -1,60 +1,101 @@
 # KapeKlasipika
 
-**KapeKlasipika: An Offline Android Application for Classifying Green Arabica Coffee Beans into Peaberry, Longberry, Premium, and Defect Using MobileNetV2 Transfer Learning**
+An offline Android app that looks at a photo of **one green (unroasted) Arabica coffee bean**
+and says whether it is **Defect, Longberry, Peaberry or Premium**. Behind it is a data mining
+project that follows **CRISP-DM**, a standard six-step recipe for data projects: business
+understanding → data understanding → data preparation → modeling → evaluation → deployment.
 
-An offline Android app that classifies a photo of a single green Arabica coffee bean into
-**Peaberry, Longberry, Premium, or Defect** using a CNN (MobileNetV2, transfer learning),
-trained on Google Colab and deployed with TensorFlow Lite + Flutter.
+> Personal details (authors, school, contact) are intentionally left out of these files for now.
 
-## Project structure
-| Folder | What goes in it |
-|---|---|
-| `00_admin/` | Project charter, decision log, meeting notes |
-| `01_business_understanding/` | Problem statement, success metrics, assumptions and risks |
-| `02_data/raw/` | Original USK-Coffee images. **Never edit these.** |
-| `02_data/processed/` | Outputs produced by code (e.g. duplicate-check results, resized copies) |
-| `02_data/external/` | Your own phone photos of local green beans (real-world test only) |
-| `03_exploration/` | EDA notebooks and findings |
-| `04_preparation/` | Cleaning and preprocessing work |
-| `05_modeling/` | Training notebooks, saved models, experiment log |
-| `06_evaluation/` | Metrics, confusion matrices, validation report |
-| `07_deployment/` | TFLite export pipeline and Flutter mobile app |
-| `src/` | Reusable Python code moved out of notebooks |
-| `reports/` | Final report and presentation figures |
+## Project status (updated 2026-11-04)
 
-## The notebooks (run in this order)
-| # | Notebook | CRISP-DM step | Where to run |
-|---|---|---|---|
-| 01 | `03_exploration/notebooks/01_data_understanding.ipynb` | Data understanding | Colab (CPU) or laptop |
-| 02 | `04_preparation/02_data_preparation.ipynb` | Data preparation (duplicate check) | Colab (CPU) or laptop |
-| 03 | `05_modeling/notebooks/03_modeling.ipynb` | Modeling: baseline, frozen, fine-tuned | **Colab T4 GPU** |
-| 03b | `05_modeling/notebooks/03b_extended_finetuning.ipynb` | Modeling: extended fine-tuning (final model) | **Colab T4 GPU** |
-| 04 | `06_evaluation/04_evaluation.ipynb` | Evaluation on the test set | Colab T4 GPU |
-| 05 | `07_deployment/pipelines/05_export_tflite.ipynb` | Deployment: v1 phone model | Colab (CPU) |
-| 06 | `06_evaluation/06_not_a_bean_detector.ipynb` | Anomaly detection + v2 phone model (replaces v1 in the app) | Colab (GPU helps) |
-| 07 | `07_deployment/pipelines/07_live_test_sheets.ipynb` | Printable test sheets + live-scanner accuracy | Colab (CPU) or laptop |
+| CRISP-DM phase | Status | Where |
+|---|---|---|
+| 1. Business understanding | Drafted | `01_business_understanding/` |
+| 2. Data understanding | Analysis done (notebook 01); write-up pending | `03_exploration/` |
+| 3. Data preparation | Done (notebook 02); write-up pending | `04_preparation/`, `02_data/interim/` |
+| 4. Modeling | Done (notebooks 03, 03b, 06) | `05_modeling/` |
+| 5. Evaluation | Done on dataset (notebook 04); **real phone photos still missing** | `06_evaluation/` |
+| 6. Deployment | TFLite model in the Flutter app (notebooks 05, 06) | `07_deployment/` |
 
-Each notebook saves its tables to `02_data/interim/` or `06_evaluation/metrics/`,
-its figures to `reports/figures/`, and its models to `05_modeling/models/`.
-All reusable code lives in `src/` (`live_detector.py` is the tested Python reference of the app's
-live bean finder and tracker); all settings live in `config/config.yaml`.
+## Results so far (USK-Coffee test set, 1,599 images)
 
-## How to rerun everything
-1. Download USK-Coffee (https://coffee.comvislab-usk.org/). It comes already split.
-   Put its `train/`, `val/` and `test/` folders in `02_data/raw/usk_coffee/`.
-   Each contains four class folders: defect, longberry, peaberry, premium.
-   (The dataset is not stored on GitHub; it is shared separately via a Google Drive link: _add link_.)
-2. Put your own phone photos in `02_data/external/<class>/` (optional, for the real-world test).
-3. Upload the whole `kapeklasipika` folder to Google Drive as `MyDrive/kapeklasipika`.
-4. In Colab: File → Open notebook → Google Drive → open notebook 01.
-   For notebook 03, set Runtime → Change runtime type → **T4 GPU** first.
-   Run every cell from top to bottom (Runtime → Run all). The first cell connects your Drive.
-5. Run notebooks 01 → 05 in order. Notebook 05 copies the model into the Flutter app.
-6. Build the app: see `07_deployment/mobile_app/README.md`.
+| Item | Result | Target |
+|---|---|---|
+| Test accuracy | 85.43% | > 81.31% (published benchmark) ✅ |
+| Macro F1 | 0.852 | ≥ 0.85 ✅ |
+| Defect recall | 0.833 | ≥ 0.90 ❌ |
+| Phone model size | 4.69 MB | < 15 MB ✅ |
+| Accuracy on real phone photos | not measured yet | — |
 
-To run notebooks 01–02 on your laptop instead: `pip install -r requirements.txt`, then open
-them in VS Code or Jupyter.
+Full details: `01_business_understanding/success_metrics.md`.
 
-## Dataset citation
-Febriana, A., Muchtar, K., Dawood, R., Lin, C.-Y. (2022). USK-COFFEE Dataset: A Multi-class
-Green Arabica Coffee Bean Dataset for Deep Learning. IEEE CyberneticsCom 2022.
+## How the folders are organised
+
+```
+00_admin/                    charter, decision log, meeting notes
+01_business_understanding/   problem, success metrics, assumptions and risks
+02_data/
+  raw/usk_coffee/            original dataset - NEVER edited
+  external/<class>/          your own phone photos of REAL beans (test only)
+  external_non_beans/        phone photos of non-bean objects (test only)
+  interim/                   inventory, duplicate checks, exclusion list (made by notebooks)
+  processed/                 reserved; images are prepared on the fly, so it stays empty
+  data_dictionary.md
+03_exploration/              EDA notebooks (01) and findings.md
+04_preparation/              notes on cleaning (02) and augmentation
+05_modeling/                 modeling notebooks (03, 03b, 06), saved models, experiments_log.md
+06_evaluation/               metrics files and validation_report.md
+07_deployment/               export notes (pipelines/) and the Flutter app (mobile_app/)
+src/                         shared Python code used by every notebook
+tests/                       quick automatic checks of src/ (run: python -m pytest tests)
+reports/                     figures for the paper and final_report.md
+config/config.yaml           every setting in one place (seed, image size, epochs, paths)
+```
+
+## How to run (Google Colab, Runtime → T4 GPU)
+
+Run the notebooks in this order. Each one starts with the same SETUP cell.
+
+1. `01_data_understanding` - inventory, class balance, image quality, colour statistics
+2. `02_data_preparation` - duplicate and leakage checks, exclusion list, augmentation preview
+3. `03_modeling` - baseline CNN, MobileNetV2 frozen, MobileNetV2 fine-tuned
+4. `03b_extended_finetuning` - continues fine-tuning (this is the model the app uses)
+5. `04_evaluation` - picks the best model on validation, then tests it once
+6. `05_export_tflite` - converts to TensorFlow Lite for the phone
+7. `06_not_a_bean_detector` - adds the "is this even a bean?" check to the phone model
+
+Suggested (optional) tidy-up: keep 01-02 in `03_exploration/notebooks/` and 03-06 in
+`05_modeling/notebooks/`. Moving them is safe: in Colab the SETUP cell uses the fixed Drive
+path, and on a laptop it searches upward for `config/config.yaml`.
+
+## Scope
+
+**In:** single-bean classification from an uploaded photo or a photo taken in the app; offline
+on Android 8.0+; a "not a coffee bean" check.
+**Out:** YOLO / webcam object detection, live multi-bean scanning (removed from the app),
+saving a history to storage (recent scans exist only while the app is open), roasted beans,
+splitting Defect into defect types.
+
+## Glossary (plain language)
+
+- **Transfer learning:** start from a network already trained on millions of everyday photos
+  (ImageNet) and teach it the new task, instead of starting from zero.
+- **Fine-tuning:** after the new last layer is trained, let the top layers of the pretrained
+  network adjust slightly, with a very small learning rate.
+- **Epoch:** one full pass over all training images.
+- **Training / validation / test set:** the model learns from training images, we choose
+  settings with validation images, and we measure the final score once on test images.
+- **Precision:** of the beans the model called X, how many really were X.
+- **Recall:** of the beans that really were X, how many the model found.
+- **F1-score:** one number that balances precision and recall; **macro** = averaged over classes.
+- **Confusion matrix:** table of true class vs predicted class; off-diagonal cells are mistakes.
+- **Data leakage:** when test images (or near copies) also appear in training, inflating scores.
+- **Data augmentation:** randomly rotating, flipping, zooming and re-lighting training images
+  so the model learns the bean, not the exact photo.
+- **TensorFlow Lite (TFLite):** the small model format that runs on phones.
+- **Float16 quantization:** storing weights as 16-bit numbers to halve the file size.
+- **Anomaly / out-of-distribution detection:** recognising inputs unlike anything in training
+  (for example a coin).
+- **Domain shift:** when the photos the app sees in real use differ from the training photos
+  (camera, light, background, printing), so accuracy drops.

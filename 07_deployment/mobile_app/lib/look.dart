@@ -1,6 +1,6 @@
 // look.dart
 // ----------
-// Colors and wording shared by the photo and live screens.
+// Colors and wording used by the photo screen.
 
 import 'package:flutter/material.dart';
 
@@ -18,8 +18,6 @@ const Map<String, Color> kClassColors = {
 };
 
 const Color kNotBeanColor = Color(0xFF7E57C2); // purple: unusual or not a coffee bean
-const Color kTouchingColor = Color(0xFFEF6C00); // orange: beans touching
-const Color kAnalyzingColor = Color(0xFFFFFFFF); // white: not classified yet
 
 const Map<String, String> kClassDescriptions = {
   'peaberry': 'Single rounded bean that forms when only one seed develops in the cherry.',
